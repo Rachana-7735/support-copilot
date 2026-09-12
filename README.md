@@ -30,7 +30,7 @@ The third row is the one that matters commercially. A bot that always answers is
 
 ---
 
-##  Architecture
+## Architecture
 
 ![Architecture](docs/architecture.png)
 
@@ -148,6 +148,10 @@ Every table carries `org_id`, including `messages`, where it is technically redu
 
 ## Measured results
 
+![Approval email](screenshots/approval-email.png)
+
+![Escalation](screenshots/agent-runs-escalation.png)
+
 All figures below come from the project's own `agent_runs` and `approvals` tables. This is a development dataset, and the caveats are stated rather than hidden.
 
 **AI behaviour** (11 runs)
@@ -244,23 +248,21 @@ Stated plainly, because knowing where a system breaks is part of engineering it.
 ```
 support-copilot/
 ├── README.md
-├── workflows/
+├── schema.sql                   
+├── Workflows/
 │   ├── SupportCopilot-A-Main.json
 │   ├── SupportCopilot-B-Embeddings.json
 │   └── SupportCopilot-C-Approval.json
-├── db/
-│   ├── schema.sql
-│   ├── functions.sql          # match_kb_chunks, set_updated_at
-│   └── seed_knowledge_base.sql
-├── prompts/
-│   ├── classify.md
-│   └── draft_reply.md
 ├── docs/
 │   └── architecture.png
 └── screenshots/
     ├── approval-email.png
-    ├── escalation-example.png
-    └── n8n-canvas.png
+    ├── agent-runs-escalation.png
+    ├── workflow-a-main-1.png
+    ├── workflow-a-main-2.png
+    ├── workflow-a-main-3.png
+    ├── workflow-b-embeddings.png
+    └── workflow-c-approval.png
 ```
 
 ---
