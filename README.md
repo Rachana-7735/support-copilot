@@ -30,7 +30,9 @@ The third row is the one that matters commercially. A bot that always answers is
 
 ---
 
-## ![Architecture](docs/architecture.png)
+##  Architecture
+
+![Architecture](docs/architecture.png)
 
 ```
 Customer email
