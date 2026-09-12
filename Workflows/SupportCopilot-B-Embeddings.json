@@ -1,0 +1,150 @@
+{
+  "name": "SupportCopilot-B-Embeddings",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "a094fc05-d8ee-4b7e-9ffe-26c4a1e6721b",
+      "name": "When clicking ‘Execute workflow’",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "kb_chunks",
+        "returnAll": true
+      },
+      "id": "0fce4905-05b5-48c1-9118-af6f22afee3d",
+      "name": "Get Chunks",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        224,
+        0
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "nO9Y9gZp4YWIyYT9",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googlePalmApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"models/gemini-embedding-001\",\n  \"content\": {\n    \"parts\": [{ \"text\": {{ JSON.stringify($json.content) }} }]\n  },\n  \"outputDimensionality\": 768\n}",
+        "options": {}
+      },
+      "id": "0d6e8fc9-4c30-453a-80d9-8cd4da7d9635",
+      "name": "Get Embedding",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        448,
+        0
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "NomSTH3lgclOxBRo",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "kb_chunks",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Get Chunks').item.json.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "embedding",
+              "fieldValue": "={{ JSON.stringify($json.embedding.values) }}"
+            }
+          ]
+        }
+      },
+      "id": "77805e18-4908-4ef4-83a9-6d76dda087e4",
+      "name": "Save Embedding",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        672,
+        0
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "nO9Y9gZp4YWIyYT9",
+          "name": "Supabase account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get Chunks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Chunks": {
+      "main": [
+        [
+          {
+            "node": "Get Embedding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Embedding": {
+      "main": [
+        [
+          {
+            "node": "Save Embedding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "3df749b3-30c7-4680-9353-bb5ad399db18",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "422adbb2b6c44053d8a596a4bee75542b27d0330db4caa7136be34a0a2124827"
+  },
+  "nodeGroups": [],
+  "id": "kDNNH3VpxZv7RU3O",
+  "tags": []
+}

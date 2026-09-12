@@ -1,0 +1,381 @@
+{
+  "name": "SupportCopilot-C-Approval",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "approve",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "8983920e-8a90-40b0-b6c8-355e047864ab",
+      "name": "Webhook",
+      "webhookId": "29d70273-a924-40e8-8441-3a08fc6b8d6f"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "approvals",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "keyValue": "={{ $json.query.approval_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "b7b635bc-8480-4ee9-a6e4-38eb8d15735b",
+      "name": "Get Approval",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "nO9Y9gZp4YWIyYT9",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "296373c2-6c4b-4c9e-8f34-21e27b49f65d",
+              "leftValue": "={{ $json.decision }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        0
+      ],
+      "id": "72b16492-b2b0-4843-aa9b-478b1c5cdb0b",
+      "name": "Not Yet Decided"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "approvals",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Webhook').item.json.query.approval_id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "decision",
+              "fieldValue": "={{ $('Webhook').item.json.query.decision }}"
+            },
+            {
+              "fieldId": "reviewer",
+              "fieldValue": "rachanapradhan84@gmail.com"
+            },
+            {
+              "fieldId": "final_reply",
+              "fieldValue": "={{ $('Get Approval').item.json.proposed_reply }}"
+            },
+            {
+              "fieldId": "decided_at",
+              "fieldValue": "={{ $now.toISO() }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        0
+      ],
+      "id": "b96453d1-6359-4b40-8d45-7153e3ddbb00",
+      "name": "Record Decision",
+      "credentials": {
+        "supabaseApi": {
+          "id": "nO9Y9gZp4YWIyYT9",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "rachanapradhan84@gmail.com",
+        "toEmail": "={{ $('Get Ticket').item.json.customer_email }}",
+        "subject": "=Re: {{ $('Get Ticket').item.json.subject }}",
+        "emailFormat": "text",
+        "text": "={{ $('Record Decision').item.json.final_reply }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1296,
+        0
+      ],
+      "id": "0e8b57bf-5972-43d8-9f47-45ce97ab735b",
+      "name": "Send Customer Reply",
+      "webhookId": "b48e7193-f83e-437b-bb35-c94b11a77bda",
+      "credentials": {
+        "smtp": {
+          "id": "tMdvuyyGajCrU3DJ",
+          "name": "Gmail SMTP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "tickets",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Get Approval').item.json.ticket_id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "status",
+              "fieldValue": "answered"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1488,
+        0
+      ],
+      "id": "bec2f2e1-72ce-40c6-8ba4-ab057b2f812b",
+      "name": "Mark Answered",
+      "credentials": {
+        "supabaseApi": {
+          "id": "nO9Y9gZp4YWIyYT9",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "Approved and sent",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1648,
+        0
+      ],
+      "id": "0ca938f2-489b-4c75-94ff-b0953f3a366c",
+      "name": "Respond"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "4d483746-5fed-4cfa-ab27-29a2e5970f39",
+              "leftValue": "={{ $json.token }}",
+              "rightValue": "={{ $('Webhook').item.json.query.token }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        448,
+        0
+      ],
+      "id": "f6de2542-4601-4f59-9fdb-f566213fa82a",
+      "name": "Token Valid"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "tickets",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "keyValue": "={{ $('Get Approval').item.json.ticket_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        896,
+        0
+      ],
+      "id": "89121529-ee78-494b-84d2-6186d7a38382",
+      "name": "Get Ticket",
+      "credentials": {
+        "supabaseApi": {
+          "id": "nO9Y9gZp4YWIyYT9",
+          "name": "Supabase account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get Approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Approval": {
+      "main": [
+        [
+          {
+            "node": "Token Valid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Not Yet Decided": {
+      "main": [
+        [
+          {
+            "node": "Get Ticket",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Record Decision": {
+      "main": [
+        [
+          {
+            "node": "Send Customer Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Customer Reply": {
+      "main": [
+        [
+          {
+            "node": "Mark Answered",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond": {
+      "main": [
+        []
+      ]
+    },
+    "Mark Answered": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Token Valid": {
+      "main": [
+        [
+          {
+            "node": "Not Yet Decided",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Ticket": {
+      "main": [
+        [
+          {
+            "node": "Record Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "10674a23-4f70-4e2c-9647-c5dfa2682e89",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "422adbb2b6c44053d8a596a4bee75542b27d0330db4caa7136be34a0a2124827"
+  },
+  "nodeGroups": [],
+  "id": "5Xx8DMLwiOaEZ8gQ",
+  "tags": []
+}
